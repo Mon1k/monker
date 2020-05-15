@@ -54,6 +54,7 @@ public class Main extends Application
             Editor editor = new Editor();
             if (getCurrentPanel().getCurrentRow() != null) {
                 editor.setFile(getCurrentPanel().getCurrentRow().getFile());
+                editor.open();
             }
             editor.show();
         });
@@ -132,8 +133,10 @@ public class Main extends Application
         Button f3 = new Button("F3");
         f3.setOnAction(actionEvent -> {
             Editor editor = new Editor();
-            editor.setFile(getCurrentPanel().getCurrentRow().getFile());
-            editor.open();
+            if (getCurrentPanel().getCurrentRow() != null) {
+                editor.setFile(getCurrentPanel().getCurrentRow().getFile());
+                editor.open();
+            }
             editor.show();
         });
         Button f9 = new Button("F9");
