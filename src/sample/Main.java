@@ -55,13 +55,17 @@ public class Main extends Application
             if (getCurrentPanel().getCurrentRow() != null) {
                 editor.setFile(getCurrentPanel().getCurrentRow().getFile());
             }
+            editor.show();
         });
         MenuItem openItem = new MenuItem("Open");
         openItem.setAccelerator(new KeyCodeCombination(KeyCode.F3));
         openItem.setOnAction(actionEvent -> {
             Editor editor = new Editor();
-            editor.setFile(getCurrentPanel().getCurrentRow().getFile());
-            editor.open();
+            if (getCurrentPanel().getCurrentRow() != null) {
+                editor.setFile(getCurrentPanel().getCurrentRow().getFile());
+                editor.open();
+            }
+            editor.show();
         });
         SeparatorMenuItem seperator = new SeparatorMenuItem();
         MenuItem exitItem = new MenuItem("Exit");
@@ -100,12 +104,23 @@ public class Main extends Application
         panels.add(right);
 
         HBox hBox = new HBox();
-        hBox.getChildren().add(left.getTable());
-        hBox.getChildren().add(right.getTable());
-        HBox.setHgrow(left.getTable(), Priority.ALWAYS);
-        HBox.setHgrow(right.getTable(), Priority.ALWAYS);
-        root.getChildren().add(hBox);
+
+        VBox leftVBox = new VBox();
+        leftVBox.getChildren().add(left.getPath());
+        leftVBox.getChildren().add(left.getTable());
+        HBox.setHgrow(leftVBox, Priority.ALWAYS);
+        hBox.getChildren().add(leftVBox);
+        VBox.setVgrow(left.getTable(), Priority.ALWAYS);
+
+        VBox rightVBox = new VBox();
+        rightVBox.getChildren().add(right.getPath());
+        rightVBox.getChildren().add(right.getTable());
+        HBox.setHgrow(rightVBox, Priority.ALWAYS);
+        hBox.getChildren().add(rightVBox);
+        VBox.setVgrow(right.getTable(), Priority.ALWAYS);
+
         VBox.setVgrow(hBox, Priority.ALWAYS);
+        root.getChildren().add(hBox);
     }
 
     public void initPanelBottom()
@@ -119,6 +134,7 @@ public class Main extends Application
             Editor editor = new Editor();
             editor.setFile(getCurrentPanel().getCurrentRow().getFile());
             editor.open();
+            editor.show();
         });
         Button f9 = new Button("F9");
         f9.setOnAction(actionEvent -> {

@@ -6,6 +6,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyCode;
+import javafx.scene.text.Text;
 
 import java.io.File;
 
@@ -13,6 +14,7 @@ public class TableCommander
 {
     private final TablePanel panel;
     private final TableView<TableRowCommander> table;
+    private final Text path;
 
     public TableCommander()
     {
@@ -48,6 +50,9 @@ public class TableCommander
                 }
             }
         });
+
+        path = new Text(getPanel().current.getAbsolutePath());
+        path.prefHeight(15);
     }
 
     public TableRowCommander getCurrentRow()
@@ -73,6 +78,7 @@ public class TableCommander
         );
         table.setItems(rowsRefresh);
         table.refresh();
+        path.setText(getPanel().current.getAbsolutePath());
         System.out.println("reload panel");
     }
 
@@ -80,5 +86,10 @@ public class TableCommander
     {
         panel.setCurrent(parentFile.getAbsolutePath());
         refresh();
+    }
+
+    public Text getPath()
+    {
+        return path;
     }
 }

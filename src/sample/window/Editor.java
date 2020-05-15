@@ -22,10 +22,11 @@ public class Editor
 {
     private File file;
     private final TextArea textArea;
+    private final Stage stage;
 
     public Editor()
     {
-        Stage stage = new Stage();
+        stage = new Stage();
         VBox root = new VBox();
 
         MenuBar menuBar = new MenuBar();
@@ -98,7 +99,11 @@ public class Editor
         Scene scene = new Scene(root);
         stage.setScene(scene);
         stage.setTitle("Editor");
-        stage.showAndWait();
+    }
+
+    public void show()
+    {
+        stage.show();
     }
 
     public void save()
@@ -117,6 +122,7 @@ public class Editor
     public void open()
     {
         System.out.println("Read: " + file.getAbsolutePath());
+        stage.setTitle("Open - " + file.getAbsolutePath());
         try {
             StringBuilder text = new StringBuilder();
             BufferedReader reader = Files.newBufferedReader(file.toPath());
@@ -124,7 +130,7 @@ public class Editor
                 text.append((char) reader.read());
             }
             reader.close();
-            textArea.setText(text.toString());
+            System.out.println(text.toString());
         } catch (IOException e) {
             e.printStackTrace();
         }
