@@ -45,6 +45,7 @@ public class Main extends Application
 
     private void initMenu()
     {
+        // test
         MenuBar menuBar = new MenuBar();
 
         Menu fileMenu = new Menu("File");
