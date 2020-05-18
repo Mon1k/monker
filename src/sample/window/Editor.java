@@ -2,6 +2,10 @@ package sample.window;
 
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
@@ -12,6 +16,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import java.awt.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
@@ -96,7 +101,9 @@ public class Editor
         root.setAlignment(Pos.CENTER);
         root.getChildren().addAll(menuBar, hBox);
 
-        Scene scene = new Scene(root);
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+        Scene scene = new Scene(root, screenSize.getWidth() / 1.5, screenSize.getHeight() / 2);
         stage.setScene(scene);
         stage.setTitle("Editor");
     }
@@ -130,7 +137,7 @@ public class Editor
                 text.append((char) reader.read());
             }
             reader.close();
-            System.out.println(text.toString());
+            textArea.setText(text.toString());
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -39,20 +39,30 @@ public class TableCommander
         table.getColumns().addAll(nameColumn, sizeColumn, typeColumn, dateColumn);
         table.setOnKeyPressed(keyEvent -> {
             if (keyEvent.getCode().equals(KeyCode.ENTER)) {
-                TableRowCommander rowCommander = table.getSelectionModel().getSelectedItem();
-                if (rowCommander.getName().equals("...")) {
-                    File parent = rowCommander.getFile().getAbsoluteFile().getParentFile();
-                    File current = panel.current;
-                    refresh(parent);
-                    table.getSelectionModel().select(panel.getIndex(current));
-                } else if (rowCommander.getFile().isDirectory()) {
-                    refresh(rowCommander.getFile());
-                }
+                openDirectory();
+            }
+        });
+        table.setOnMouseClicked(mouseEvent -> {
+            if (mouseEvent.getClickCount() >= 2) {
+                openDirectory();
             }
         });
 
         path = new Text(getPanel().current.getAbsolutePath());
         path.prefHeight(15);
+    }
+
+    private void openDirectory()
+    {
+        TableRowCommander rowCommander = table.getSelectionModel().getSelectedItem();
+        if (rowCommander.getName().equals("...")) {
+            File parent = rowCommander.getFile().getAbsoluteFile().getParentFile();
+            File current = panel.current;
+            refresh(parent);
+            table.getSelectionModel().select(panel.getIndex(current));
+        } else if (rowCommander.getFile().isDirectory()) {
+            refresh(rowCommander.getFile());
+        }
     }
 
     public TableRowCommander getCurrentRow()

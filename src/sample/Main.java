@@ -3,6 +3,10 @@ package sample;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
@@ -17,8 +21,15 @@ import sample.window.About;
 import sample.window.Editor;
 import sample.window.Popup;
 
+import java.awt.*;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributeView;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Optional;
 
 public class Main extends Application
 {
@@ -35,9 +46,12 @@ public class Main extends Application
 
         initMenu();
         initTable();
+        initContextMenu();
         initPanelBottom();
 
-        Scene scene = new Scene(root, 1200, 600);
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+        Scene scene = new Scene(root, screenSize.width / 1.5, screenSize.height / 1.5);
         stage.setScene(scene);
         stage.setTitle(VERSION);
         stage.show();
@@ -45,33 +59,22 @@ public class Main extends Application
 
     private void initMenu()
     {
-        // test
         MenuBar menuBar = new MenuBar();
 
         Menu fileMenu = new Menu("File");
         MenuItem newItem = new MenuItem("New");
         newItem.setAccelerator(KeyCombination.keyCombination("Ctrl+N"));
         newItem.setOnAction(actionEvent -> {
-            Editor editor = new Editor();
-            if (getCurrentPanel().getCurrentRow() != null) {
-                editor.setFile(getCurrentPanel().getCurrentRow().getFile());
-                editor.open();
-            }
-            editor.show();
+            commandNew();
         });
         MenuItem openItem = new MenuItem("Open");
         openItem.setAccelerator(new KeyCodeCombination(KeyCode.F3));
         openItem.setOnAction(actionEvent -> {
-            Editor editor = new Editor();
-            if (getCurrentPanel().getCurrentRow() != null) {
-                editor.setFile(getCurrentPanel().getCurrentRow().getFile());
-                editor.open();
-            }
-            editor.show();
+            commandOpen();
         });
         SeparatorMenuItem seperator = new SeparatorMenuItem();
         MenuItem exitItem = new MenuItem("Exit");
-        exitItem.setOnAction(actionEvent -> Platform.exit());
+        exitItem.setOnAction(actionEvent -> commandExit());
         exitItem.setAccelerator(new KeyCodeCombination(KeyCode.F10));
         fileMenu.getItems().addAll(newItem, openItem, seperator, exitItem);
         menuBar.getMenus().add(fileMenu);
@@ -94,6 +97,151 @@ public class Main extends Application
             new About().show();
         });
         root.getChildren().add(menuBar);
+    }
+
+    private void initContextMenu()
+    {
+        ContextMenu contextMenu = new ContextMenu();
+        MenuItem deleteFile = new MenuItem("Delete");
+        deleteFile.setOnAction(actionEvent -> commandDelete());
+        deleteFile.setVisible(false);
+        contextMenu.getItems().add(deleteFile);
+
+        contextMenu.setOnShowing(windowEvent -> {
+            deleteFile.setVisible(false);
+            if (getCurrentPanel().getCurrentRow() != null && getCurrentPanel().getCurrentRow().getFile().isFile()) {
+                deleteFile.setVisible(true);
+            }
+        });
+
+        MenuItem infoItem = new MenuItem("Info");
+        infoItem.setOnAction(actionEvent -> commandInfo());
+        contextMenu.getItems().add(infoItem);
+
+        for (TableCommander table : panels) {
+            table.getTable().setContextMenu(contextMenu);
+        }
+    }
+
+    private void commandNew()
+    {
+        Editor editor = new Editor();
+        TableRowCommander tableRowCommander = getCurrentPanel().getCurrentRow();
+
+        if (tableRowCommander != null && tableRowCommander.getFile().isFile()) {
+            editor.setFile(getCurrentPanel().getCurrentRow().getFile());
+            editor.open();
+        }
+        editor.show();
+
+        System.out.println("command - new file");
+    }
+
+    private void commandOpen()
+    {
+        Editor editor = new Editor();
+        TableRowCommander tableRowCommander = getCurrentPanel().getCurrentRow();
+
+        if (tableRowCommander != null && tableRowCommander.getFile().isFile()) {
+            editor.setFile(getCurrentPanel().getCurrentRow().getFile());
+            editor.open();
+        }
+        if (tableRowCommander != null && tableRowCommander.getFile().isDirectory()) {
+            commandOpenDirectory();
+        } else {
+            editor.show();
+        }
+
+        System.out.println("command - open file");
+    }
+
+    private void commandCreateDirectory()
+    {
+        TextInputDialog textInputDialog = new TextInputDialog();
+        textInputDialog.setTitle("Create directory");
+        textInputDialog.setHeaderText("");
+        textInputDialog.setContentText("Enter name");
+        Optional<String> result = textInputDialog.showAndWait();
+        result.ifPresent(s -> {
+            File file = new File(result.get());
+            if (file.isDirectory()) {
+                Alert alert = new Alert(Alert.AlertType.ERROR, "Directory is exists");
+                alert.showAndWait();
+            } else {
+                if (!file.mkdir()) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR, "Error create directory");
+                    alert.showAndWait();
+                } else {
+                    getCurrentPanel().refresh();
+                }
+            }
+        });
+
+        System.out.println("command - create directory");
+    }
+
+    private void commandOpenDirectory()
+    {
+        getCurrentPanel().refresh(getCurrentPanel().getCurrentRow().getFile());
+        System.out.println("command - open dir");
+    }
+
+    private void commandDelete()
+    {
+        System.out.println("command - delete");
+        TableCommander tableCommander = this.getCurrentPanel();
+        TableView<TableRowCommander> table = tableCommander.getTable();
+        TableRowCommander rowCommander = table.getSelectionModel().getSelectedItem();
+        if (rowCommander.getFile().isDirectory()) {
+            new Popup().show("Directory is not delete, temporaly");
+        } else if (rowCommander.getFile().isFile()) {
+            File file = rowCommander.getFile();
+            System.out.println("File " + file.getName() + " is delete");
+            if (!file.delete()) {
+                Alert alert = new Alert(Alert.AlertType.ERROR, "Error delete file");
+                alert.showAndWait();
+            } else {
+                tableCommander.refresh();
+            }
+        }
+    }
+
+    private void commandExit()
+    {
+        System.out.println("command - exit");
+        Platform.exit();
+    }
+
+    private void commandInfo()
+    {
+        File file = getCurrentPanel().getCurrentRow().getFile();
+        if (file.isFile()) {
+            try {
+                BasicFileAttributes view = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+                String info = file.getName() + "\n"
+                    + "Path: " + file.getAbsolutePath() + "\n"
+                    + "Size: " + file.length() + "\n"
+                    + "Date create: " + (new SimpleDateFormat("HH:mm:ss dd.MM.yyyy").format(view.creationTime().toMillis())) + "\n"
+                    + "Date change: " + (new SimpleDateFormat("HH:mm:ss dd.MM.yyyy").format(file.lastModified())) + "\n";
+                new Popup().show(info);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        } else {
+            BasicFileAttributes view = null;
+            try {
+                view = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+                String info = "Directory: " + file.getName() + "\n"
+                    + "Path: " + file.getAbsolutePath() + "\n"
+                    + "Size: " + file.length() + "\n"
+                    + "Date create: " + (new SimpleDateFormat("HH:mm:ss dd.MM.yyyy").format(view.creationTime().toMillis())) + "\n"
+                    + "Date change: " + (new SimpleDateFormat("HH:mm:ss dd.MM.yyyy").format(file.lastModified())) + "\n";
+                new Popup().show(info);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void initTable()
@@ -133,37 +281,29 @@ public class Main extends Application
         });
         Button f3 = new Button("F3");
         f3.setOnAction(actionEvent -> {
-            Editor editor = new Editor();
-            if (getCurrentPanel().getCurrentRow() != null) {
-                editor.setFile(getCurrentPanel().getCurrentRow().getFile());
-                editor.open();
-            }
-            editor.show();
+            commandOpen();
+        });
+        Button f7 = new Button("F7");
+        f7.setOnAction(actionEvent -> {
+            commandCreateDirectory();
         });
         Button f9 = new Button("F9");
         f9.setOnAction(actionEvent -> {
-            TableCommander tableCommander = this.getCurrentPanel();
-            TableView<TableRowCommander> table = tableCommander.getTable();
-            TableRowCommander rowCommander = table.getSelectionModel().getSelectedItem();
-            if (rowCommander.getFile().isDirectory()) {
-                new Popup().show("Directory is not delete, temporaly");
-            } else if (rowCommander.getFile().isFile()) {
-                File file = rowCommander.getFile();
-                file.delete();
-                tableCommander.refresh();
-            }
+            commandDelete();
         });
         Button f10 = new Button("F10");
-        f10.setOnAction(actionEvent -> Platform.exit());
+        f10.setOnAction(actionEvent -> commandExit());
 
         f1.setPrefWidth(1000000);
         f3.setPrefWidth(1000000);
+        f7.setPrefWidth(1000000);
         f9.setPrefWidth(1000000);
         f10.setPrefWidth(1000000);
         HBox hBox = new HBox();
-        hBox.getChildren().addAll(f1, f3, f9, f10);
+        hBox.getChildren().addAll(f1, f3, f7, f9, f10);
         HBox.setHgrow(f1, Priority.ALWAYS);
         HBox.setHgrow(f3, Priority.ALWAYS);
+        HBox.setHgrow(f7, Priority.ALWAYS);
         HBox.setHgrow(f9, Priority.ALWAYS);
         HBox.setHgrow(f10, Priority.ALWAYS);
         root.getChildren().add(hBox);
@@ -177,7 +317,8 @@ public class Main extends Application
             }
         }
 
-        return null;
+        panels.get(0).getTable().getSelectionModel().select(0);
+        return panels.get(0);
     }
 
     public static void main(String[] args)
