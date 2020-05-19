@@ -5,8 +5,8 @@ import java.util.ArrayList;
 
 public class TablePanel
 {
-    ArrayList<TableRowCommander> panel;
-    File current = new File("");
+    private ArrayList<TableRowCommander> panel;
+    public File current = new File("");
 
     public void scaner()
     {
@@ -21,9 +21,9 @@ public class TablePanel
 
         FileScaner scaner = new FileScaner();
         ArrayList<File> result = scaner.scaner(current.getAbsolutePath());
-        System.out.println("current path: "+current.getAbsolutePath());
+        System.out.println("current path: " + current.getAbsolutePath());
 
-        for (File file: result) {
+        for (File file : result) {
             TableRowCommander row = new TableRowCommander(file);
             panel.add(row);
         }
@@ -32,7 +32,6 @@ public class TablePanel
     public void setCurrent(String path)
     {
         current = new File(path);
-        System.out.println(current);
     }
 
     public ArrayList<TableRowCommander> getPanel()
@@ -42,7 +41,7 @@ public class TablePanel
 
     public int getIndex(File file)
     {
-        for (TableRowCommander row: panel) {
+        for (TableRowCommander row : panel) {
             if (row.file.getAbsolutePath().equals(file.getAbsolutePath())) {
                 return panel.indexOf(row);
             }

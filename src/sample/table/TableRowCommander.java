@@ -18,7 +18,6 @@ public class TableRowCommander
     public TableRowCommander(File file)
     {
         this.file = file;
-        System.out.println(file);
         name = new SimpleStringProperty(file.getName());
         size = new SimpleStringProperty(file.isDirectory() ? "dir" : Long.toString(file.length()));
         type = new SimpleStringProperty(file.isDirectory() ? "" : FileExt.getExtension(file));

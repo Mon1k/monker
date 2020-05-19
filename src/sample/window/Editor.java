@@ -26,6 +26,8 @@ import java.nio.file.Files;
 public class Editor
 {
     private File file;
+    private File directory;
+
     private final TextArea textArea;
     private final Stage stage;
 
@@ -41,8 +43,8 @@ public class Editor
         openItem.setAccelerator(KeyCombination.keyCombination("Ctrl+O"));
         openItem.setOnAction(actionEvent -> {
             FileChooser fileChooser = new FileChooser();
-            if (file != null) {
-                fileChooser.setInitialDirectory(file);
+            if (directory != null) {
+                fileChooser.setInitialDirectory(directory);
             }
             file = fileChooser.showOpenDialog(stage);
             if (file != null) {
@@ -54,6 +56,9 @@ public class Editor
         saveItem.setOnAction(actionEvent -> {
             if (file == null) {
                 FileChooser fileChooser = new FileChooser();
+                if (directory != null) {
+                    fileChooser.setInitialDirectory(directory);
+                }
                 file = fileChooser.showSaveDialog(stage);
             }
             if (file != null) {
@@ -64,8 +69,8 @@ public class Editor
         saveAsItem.setAccelerator(KeyCombination.keyCombination("Ctrl+Shift+S"));
         saveAsItem.setOnAction(actionEvent -> {
             FileChooser fileChooser = new FileChooser();
-            if (file != null) {
-                fileChooser.setInitialDirectory(file);
+            if (directory != null) {
+                fileChooser.setInitialDirectory(directory);
             }
             file = fileChooser.showSaveDialog(stage);
             if (file != null) {
@@ -146,5 +151,15 @@ public class Editor
     public void setFile(File file)
     {
         this.file = file;
+    }
+
+    public void setDirectory(File directory)
+    {
+        this.directory = directory;
+    }
+
+    public Stage getStage()
+    {
+        return stage;
     }
 }

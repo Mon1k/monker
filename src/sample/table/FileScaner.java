@@ -10,6 +10,7 @@ public class FileScaner
         ArrayList<File> result = new ArrayList<>();
 
         File filePath = new File(path);
+        System.out.println("found files:");
         for (File file: filePath.listFiles()) {
             System.out.println(file);
             result.add(file);

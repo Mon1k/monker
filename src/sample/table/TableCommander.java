@@ -70,6 +70,11 @@ public class TableCommander
         return table.getSelectionModel().getSelectedItem();
     }
 
+    public String getCurrentDirectory()
+    {
+        return panel.current.getAbsolutePath();
+    }
+
     public TablePanel getPanel()
     {
         return panel;
@@ -82,6 +87,7 @@ public class TableCommander
 
     public void refresh()
     {
+        System.out.println("reload panel");
         panel.scaner();
         ObservableList<TableRowCommander> rowsRefresh = FXCollections.observableArrayList(
             panel.getPanel()
@@ -89,7 +95,6 @@ public class TableCommander
         table.setItems(rowsRefresh);
         table.refresh();
         path.setText(getPanel().current.getAbsolutePath());
-        System.out.println("reload panel");
     }
 
     public void refresh(File parentFile)
