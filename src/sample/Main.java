@@ -16,6 +16,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import sample.file.FileExt;
+import sample.file.FileUtils;
 import sample.table.TableCommander;
 import sample.table.TableRowCommander;
 import sample.window.About;
@@ -44,16 +45,16 @@ public class Main extends Application
     {
         root = new VBox();
 
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        Scene scene = new Scene(root, screenSize.width / 1.5, screenSize.height / 1.5);
+        stage.setScene(scene);
+        stage.setTitle(VERSION);
+
         initMenu();
         initTable();
         initContextMenu();
         initPanelBottom();
 
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-
-        Scene scene = new Scene(root, screenSize.width / 1.5, screenSize.height / 1.5);
-        stage.setScene(scene);
-        stage.setTitle(VERSION);
         stage.show();
         stage.setOnCloseRequest(windowEvent -> commandExit());
     }
@@ -89,7 +90,23 @@ public class Main extends Application
         MenuItem deleteItem = new MenuItem("Delete");
         deleteItem.setAccelerator(KeyCombination.keyCombination("Delete"));
         deleteItem.setOnAction(actionEvent -> commandDelete());
-        commandMenu.getItems().addAll(commandItemMenuItem, deleteItem);
+        Menu subCommandMenu = new Menu("Tools");
+        MenuItem generateFileItem = new MenuItem("Generate Big File");
+        subCommandMenu.getItems().add(generateFileItem);
+        generateFileItem.setOnAction(actionEvent -> {
+            TextInputDialog textInputDialog = new TextInputDialog("100000");
+            textInputDialog.setTitle("Create big file");
+            textInputDialog.setContentText("Set size file");
+            Optional<String> result = textInputDialog.showAndWait();
+            result.ifPresent(s -> {
+                System.out.println("command - create big file");
+                File file = new File("bigFile.txt");
+                FileUtils.generateBigFile(file.getAbsolutePath(), Long.parseLong(result.get()));
+                getCurrentPanel().refresh();
+            });
+        });
+
+        commandMenu.getItems().addAll(commandItemMenuItem, deleteItem, subCommandMenu);
         menuBar.getMenus().add(commandMenu);
 
         Menu aboutMenu = new Menu("About");
@@ -136,7 +153,7 @@ public class Main extends Application
 
         editor.setDirectory(getCurrentPanel().getPanel().current);
         editor.show();
-        editor.getStage().setOnCloseRequest(windowEvent -> {
+        editor.getStage().setOnHiding(windowEvent -> {
             getCurrentPanel().refresh();
         });
 
@@ -182,7 +199,7 @@ public class Main extends Application
                 editor.open();
             }
             editor.show();
-            editor.getStage().setOnCloseRequest(windowEvent -> {
+            editor.getStage().setOnHiding(windowEvent -> {
                 getCurrentPanel().refresh();
             });
         }
@@ -325,35 +342,42 @@ public class Main extends Application
 
     public void initPanelBottom()
     {
-        Button f1 = new Button("F1");
+        Button f1 = new Button("F1 - about");
         f1.setOnAction(actionEvent -> {
             new About().show();
         });
-        Button f3 = new Button("F3");
+
+        Button f3 = new Button("F3 - read");
         f3.setOnAction(actionEvent -> {
             commandOpen();
         });
-        Button f4 = new Button("F4");
+
+        Button f4 = new Button("F4 - edit");
         f4.setOnAction(actionEvent -> {
             commandOpen();
         });
-        Button f5 = new Button("F5");
+
+        Button f5 = new Button("F5 - copy");
         f5.setOnAction(actionEvent -> {
             commandCopy();
         });
-        Button f6 = new Button("F6");
+
+        Button f6 = new Button("F6 - rename");
         f6.setOnAction(actionEvent -> {
             commandRename();
         });
-        Button f7 = new Button("F7");
+
+        Button f7 = new Button("F7 - create dir");
         f7.setOnAction(actionEvent -> {
             commandCreateDirectory();
         });
-        Button f9 = new Button("F9");
+
+        Button f9 = new Button("F9 - delete");
         f9.setOnAction(actionEvent -> {
             commandDelete();
         });
-        Button f10 = new Button("F10");
+
+        Button f10 = new Button("F10 - exit");
         f10.setOnAction(actionEvent -> commandExit());
 
         f1.setPrefWidth(1000000);
@@ -393,11 +417,13 @@ public class Main extends Application
     {
         for (TableCommander table : panels) {
             if (table.getTable().getSelectionModel().getSelectedItem() == null) {
+                System.out.println("Current for loop: " + table.getPanel().current.getAbsolutePath());
                 return table;
             }
         }
 
         panels.get(0).getTable().getSelectionModel().select(0);
+        System.out.println("Current for loop: " + panels.get(0).getPanel().current.getAbsolutePath());
         return panels.get(0);
     }
 

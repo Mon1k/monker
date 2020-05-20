@@ -22,6 +22,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.sql.Time;
+import java.time.Instant;
+import java.util.Timer;
 
 public class Editor
 {
@@ -80,7 +83,7 @@ public class Editor
         SeparatorMenuItem seperator = new SeparatorMenuItem();
         MenuItem exitItem = new MenuItem("Exit");
         exitItem.setOnAction(actionEvent -> {
-            stage.close();
+            stage.hide();
         });
         exitItem.setAccelerator(new KeyCodeCombination(KeyCode.F10));
         fileMenu.getItems().addAll(openItem, saveItem, saveAsItem, seperator, exitItem);
@@ -136,12 +139,15 @@ public class Editor
         System.out.println("Read: " + file.getAbsolutePath());
         stage.setTitle("Open - " + file.getAbsolutePath());
         try {
+            int time = Instant.now().getNano();
             StringBuilder text = new StringBuilder();
             BufferedReader reader = Files.newBufferedReader(file.toPath());
             while (reader.ready()) {
                 text.append((char) reader.read());
             }
             reader.close();
+            System.out.println("read time="+ (Instant.now().getNano() - time));
+
             textArea.setText(text.toString());
         } catch (IOException e) {
             e.printStackTrace();

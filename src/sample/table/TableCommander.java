@@ -43,6 +43,9 @@ public class TableCommander
             }
         });
         table.setOnMouseClicked(mouseEvent -> {
+            if (table.getSelectionModel().getSelectedItem() == null) {
+                table.getSelectionModel().select(0);
+            }
             if (mouseEvent.getClickCount() >= 2) {
                 openDirectory();
             }
@@ -62,6 +65,9 @@ public class TableCommander
             table.getSelectionModel().select(panel.getIndex(current));
         } else if (rowCommander.getFile().isDirectory()) {
             refresh(rowCommander.getFile());
+            if (table.getSelectionModel().getSelectedItem() == null) {
+                table.getSelectionModel().select(0);
+            }
         }
     }
 
