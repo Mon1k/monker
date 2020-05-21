@@ -8,7 +8,6 @@ public class FileUtils
 {
     public static void generateBigFile(String name, long size)
     {
-        System.out.println("name=" + name + " size=" + size);
         File file = new File(name);
         int index = 1;
         while (true) {
@@ -28,7 +27,7 @@ public class FileUtils
         try {
             FileWriter writer = new FileWriter(file.getAbsolutePath());
             for (long i = 0; i < size; i++) {
-                writer.write(String.valueOf(0));
+                writer.write(String.valueOf(" "));
             }
             writer.close();
         } catch (IOException e) {

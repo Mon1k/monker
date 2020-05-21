@@ -24,6 +24,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.sql.Time;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalField;
+import java.time.temporal.TemporalUnit;
 import java.util.Timer;
 
 public class Editor
@@ -139,14 +142,14 @@ public class Editor
         System.out.println("Read: " + file.getAbsolutePath());
         stage.setTitle("Open - " + file.getAbsolutePath());
         try {
-            int time = Instant.now().getNano();
+            long time = System.currentTimeMillis();
             StringBuilder text = new StringBuilder();
             BufferedReader reader = Files.newBufferedReader(file.toPath());
             while (reader.ready()) {
-                text.append((char) reader.read());
+                text.append(reader.readLine()).append("\n");
             }
             reader.close();
-            System.out.println("read time="+ (Instant.now().getNano() - time));
+            System.out.println("read time=" + (System.currentTimeMillis() - time));
 
             textArea.setText(text.toString());
         } catch (IOException e) {

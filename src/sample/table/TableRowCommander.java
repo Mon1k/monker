@@ -36,7 +36,7 @@ public class TableRowCommander
 
     public String getSize()
     {
-        return size.get();
+        return FileExt.humanSize(file);
     }
 
     public void setSize(String size)

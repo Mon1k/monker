@@ -19,6 +19,7 @@ import sample.file.FileExt;
 import sample.file.FileUtils;
 import sample.table.TableCommander;
 import sample.table.TableRowCommander;
+import sample.tests.fileread.FileRead;
 import sample.window.About;
 import sample.window.Editor;
 import sample.window.Popup;
@@ -105,6 +106,9 @@ public class Main extends Application
                 getCurrentPanel().refresh();
             });
         });
+        MenuItem speedTestReadFileItem = new MenuItem("Speed test read file");
+        subCommandMenu.getItems().add(speedTestReadFileItem);
+        speedTestReadFileItem.setOnAction(actionEvent -> new FileRead());
 
         commandMenu.getItems().addAll(commandItemMenuItem, deleteItem, subCommandMenu);
         menuBar.getMenus().add(commandMenu);

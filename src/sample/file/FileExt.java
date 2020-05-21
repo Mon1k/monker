@@ -36,4 +36,48 @@ public class FileExt
             e.printStackTrace();
         }
     }
+
+    public static String humanSize(File file)
+    {
+        String result;
+        long size = file.length();
+        int index = 0;
+        while (true) {
+            if (size > 1024) {
+                index++;
+            } else {
+                break;
+            }
+            size /= 1024;
+        }
+
+        result = String.valueOf(size);
+        switch (index) {
+            default:
+                result += "b";
+                break;
+
+            case 1:
+                result += "Kb";
+                break;
+
+            case 2:
+                result += "Mb";
+                break;
+
+            case 3:
+                result += "Gb";
+                break;
+
+            case 4:
+                result += "Tb";
+                break;
+
+            case 5:
+                result += "Pb";
+                break;
+        }
+
+        return result;
+    }
 }
