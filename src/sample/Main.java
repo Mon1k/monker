@@ -17,6 +17,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import sample.file.FileExt;
 import sample.file.FileUtils;
+import sample.subproject.arcanoid.Arcanoid;
 import sample.table.TableCommander;
 import sample.table.TableRowCommander;
 import sample.tests.fileread.FileRead;
@@ -109,6 +110,9 @@ public class Main extends Application
         MenuItem speedTestReadFileItem = new MenuItem("Speed test read file");
         subCommandMenu.getItems().add(speedTestReadFileItem);
         speedTestReadFileItem.setOnAction(actionEvent -> new FileRead());
+        MenuItem parallelAracanoidItem = new MenuItem("Parallel arcanoid");
+        subCommandMenu.getItems().add(parallelAracanoidItem);
+        parallelAracanoidItem.setOnAction(actionEvent -> new Arcanoid());
 
         commandMenu.getItems().addAll(commandItemMenuItem, deleteItem, subCommandMenu);
         menuBar.getMenus().add(commandMenu);

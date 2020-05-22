@@ -51,31 +51,14 @@ public class FileExt
             size /= 1024;
         }
 
-        result = String.valueOf(size);
+        result = size + " ";
         switch (index) {
-            default:
-                result += "b";
-                break;
-
-            case 1:
-                result += "Kb";
-                break;
-
-            case 2:
-                result += "Mb";
-                break;
-
-            case 3:
-                result += "Gb";
-                break;
-
-            case 4:
-                result += "Tb";
-                break;
-
-            case 5:
-                result += "Pb";
-                break;
+            default -> result += "b";
+            case 1 -> result += "Kb";
+            case 2 -> result += "Mb";
+            case 3 -> result += "Gb";
+            case 4 -> result += "Tb";
+            case 5 -> result += "Pb";
         }
 
         return result;

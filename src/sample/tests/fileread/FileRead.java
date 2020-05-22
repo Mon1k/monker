@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 import java.util.stream.Collectors;
@@ -71,19 +72,26 @@ public class FileRead
 
         // channel
         try {
-            long time = System.currentTimeMillis();
-            StringBuilder text = new StringBuilder();
-            SeekableByteChannel channel = Files.newByteChannel(file.toPath(), StandardOpenOption.READ);
-            ByteBuffer buffer = ByteBuffer.allocate(1024);
-            int c;
-            while ((c = channel.read(buffer)) != - 1) {
-                buffer.rewind();
-                for (int i = 0; i < c; i++)
-                    text.append(buffer.get());
+            ArrayList<Integer> bufferSize = new ArrayList<>();
+            for (int i = 64; i <= 65536; i *= 2) {
+                bufferSize.add(i);
             }
-            buffer.clear();
-            channel.close();
-            result += "Channel: " + (System.currentTimeMillis() - time) + "ms\n";
+
+            for (int size: bufferSize) {
+                long time = System.currentTimeMillis();
+                StringBuilder text = new StringBuilder();
+                SeekableByteChannel channel = Files.newByteChannel(file.toPath(), StandardOpenOption.READ);
+                ByteBuffer buffer = ByteBuffer.allocate(size);
+                while (channel.read(buffer) != -1) {
+                    buffer.rewind();
+                    while (buffer.hasRemaining()) {
+                        text.append(buffer.get());
+                    }
+                    buffer.clear();
+                }
+                channel.close();
+                result += "Channel (size buffer="+size+"): " + (System.currentTimeMillis() - time) + "ms\n";
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
