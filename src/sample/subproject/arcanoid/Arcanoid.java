@@ -1,5 +1,6 @@
 package sample.subproject.arcanoid;
 
+import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Menu;
@@ -12,7 +13,6 @@ import javafx.scene.input.KeyCombination;
 import javafx.stage.Stage;
 import sample.window.Popup;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -26,6 +26,9 @@ public class Arcanoid
     ArrayList<Block> blocks;
     Block plank;
     ArrayList<Ball> balls;
+
+    int lives;
+    int count;
 
     public Arcanoid()
     {
@@ -60,22 +63,29 @@ public class Arcanoid
         stage.setResizable(false);
 
         commandNew();
-        stage.showAndWait();
-        stage.setOnCloseRequest(windowEvent -> commandExit());
+        stage.show();
+        stage.setOnHiding(windowEvent -> commandExit());
     }
 
     public void commandExit()
     {
+        System.out.println("exit arcanoid");
         stage.hide();
         timer.cancel();
     }
 
     public void commandNew()
     {
+        System.out.println("new arcanoid");
+
+        lives = 3;
+        count = 0;
+
         blocks = new ArrayList<>();
         for (int j = 0; j < 5; j++) {
-            for (int i = 0; i < 13; i++) {
+            for (int i = 0; i < 14; i++) {
                 Block block = new Block(root);
+                block.randomColor();
                 block.width = 70;
                 block.height = 30;
                 block.x = 5 + i * (block.width + 2);
@@ -105,6 +115,7 @@ public class Arcanoid
             {
                 update();
                 render();
+                checkGame();
             }
         };
 
@@ -112,7 +123,50 @@ public class Arcanoid
             timer.cancel();
         }
         timer = new Timer("loop");
-        timer.schedule(timerTask, 1000L, 20L);
+        timer.schedule(timerTask, 0, 20L);
+
+        stage.getScene().setOnMouseMoved(mouseEvent -> {
+            plank.x = mouseEvent.getX() - plank.width / 2;
+            if (plank.x < 5) {
+                plank.x = 5;
+            }
+            if (plank.x + plank.width > stage.getScene().getWidth()) {
+                plank.x = stage.getScene().getWidth() - plank.width;
+            }
+        });
+    }
+
+    private void checkGame()
+    {
+        Platform.runLater(() -> {
+            stage.setTitle("Arcanoid - lives: " + lives + ", count: " + count);
+
+            boolean isEmpty = true;
+            boolean isEmptyBall = true;
+            for (Block block : blocks) {
+                if (block.rectangle.isVisible()) {
+                    isEmpty = false;
+                    break;
+                }
+            }
+            for (Ball ball: balls) {
+                if (ball.circle.isVisible()) {
+                    isEmptyBall = false;
+                    break;
+                }
+            }
+            if (isEmpty) {
+                timer.cancel();
+                stage.setTitle("Arcanoid");
+                new Popup().show("Games win\nCount: " + count);
+            }
+
+            if (lives <= 0 || isEmptyBall) {
+                timer.cancel();
+                stage.setTitle("Arcanoid");
+                new Popup().show("Games failed\nCount: " + count);
+            }
+        });
     }
 
     public void render()
@@ -131,7 +185,65 @@ public class Arcanoid
     public void update()
     {
         for (Ball ball : balls) {
+            if (!ball.circle.isVisible()) {
+                continue;
+            }
+            if (CollisionDetection.BoxBox(plank.rectangle, ball.getRectangle())) {
+                ball.dy = -ball.dy; // @todo
+                ball.dy += Math.random();
+                break;
+            }
+
+            if (ball.y + ball.radius + ball.dy > stage.getScene().getHeight()) {
+                lives--;
+                ball.destroy();
+                continue;
+            }
+
+            // ball to ball cd
+            for (Ball ballOther : balls) {
+                if (!ballOther.circle.isVisible()) {
+                    continue;
+                }
+                if (ballOther.equals(ball)) {
+                    continue;
+                }
+                if (CollisionDetection.CircleCircle(ballOther.getCircle(), ball.getCircle())) {
+                    ballOther.dy = -ballOther.dy; // @todo
+                    ballOther.dy += Math.random();
+                    break;
+                }
+            }
+
             ball.move();
+        }
+
+        for (Block block : blocks) {
+            for (Ball ball : balls) {
+                if (ball.circle.isVisible() && block.rectangle.isVisible() &&
+                    CollisionDetection.BoxBox(block.rectangle, ball.getRectangle())) {
+                    block.destroy();
+                    blocks.remove(block);
+                    ball.dy = -ball.dy; // @todo
+                    ball.dy += Math.random();
+                    count++;
+
+                    if (Math.random() * 100 < 20 * lives) {
+                        Platform.runLater(() -> {
+                            Ball newBall = new Ball(root);
+                            newBall.radius = Math.random() * 10 + 10;
+                            newBall.x = ball.x;
+                            newBall.y = ball.y + newBall.radius;
+                            newBall.dx = Math.random() * 6 - 3;
+                            newBall.dy = Math.random() * 2 + 2;
+                            newBall.randomColor();
+                            balls.add(newBall);
+                        });
+                    }
+
+                    return;
+                }
+            }
         }
     }
 }
