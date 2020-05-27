@@ -27,6 +27,9 @@ public class Arcanoid
     Block plank;
     ArrayList<Ball> balls;
 
+    ArrayList<Thread> blocksThread;
+    ArrayList<Thread> ballsThread;
+
     int lives;
     int count;
 
@@ -47,13 +50,19 @@ public class Arcanoid
         exitItem.setAccelerator(new KeyCodeCombination(KeyCode.F10));
         fileMenu.getItems().addAll(newItem, seperator, exitItem);
 
+        Menu toolMenu = new Menu("Tool");
+        MenuItem newBallItem = new MenuItem("New ball");
+        newBallItem.setOnAction(actionEvent -> commandNewBall());
+        newBallItem.setAccelerator(KeyCombination.keyCombination("Ctrl+B"));
+        toolMenu.getItems().add(newBallItem);
+
         Menu aboutMenu = new Menu("About");
         MenuItem aboutItemMenuItem = new MenuItem("About");
         aboutItemMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.F1));
         aboutMenu.getItems().add(aboutItemMenuItem);
         aboutItemMenuItem.setOnAction(actionEvent -> new Popup().show("Arcanoid"));
 
-        menuBar.getMenus().addAll(fileMenu, aboutMenu);
+        menuBar.getMenus().addAll(fileMenu, toolMenu, aboutMenu);
 
         root.getChildren().addAll(menuBar);
 
@@ -70,8 +79,8 @@ public class Arcanoid
     public void commandExit()
     {
         System.out.println("exit arcanoid");
-        stage.hide();
         timer.cancel();
+        stage.hide();
     }
 
     public void commandNew()
@@ -82,6 +91,7 @@ public class Arcanoid
         count = 0;
 
         blocks = new ArrayList<>();
+        blocksThread = new ArrayList<>();
         for (int j = 0; j < 5; j++) {
             for (int i = 0; i < 14; i++) {
                 Block block = new Block(root);
@@ -91,6 +101,8 @@ public class Arcanoid
                 block.x = 5 + i * (block.width + 2);
                 block.y = 25 + j * (block.height + 2);
                 blocks.add(block);
+                Thread thread = new Thread(block);
+                blocksThread.add(thread);
             }
         }
 
@@ -101,12 +113,13 @@ public class Arcanoid
         plank.y = stage.getScene().getHeight() - plank.height - 5;
 
         balls = new ArrayList<>();
+        ballsThread = new ArrayList<>();
         Ball ball = new Ball(root);
         ball.x = plank.x;
         ball.y = plank.y - 30;
         balls.add(ball);
-
-        render();
+        Thread thread = new Thread(ball);
+        ballsThread.add(thread);
 
         TimerTask timerTask = new TimerTask()
         {
@@ -115,7 +128,7 @@ public class Arcanoid
             {
                 update();
                 render();
-                checkGame();
+                check();
             }
         };
 
@@ -130,55 +143,77 @@ public class Arcanoid
             if (plank.x < 5) {
                 plank.x = 5;
             }
-            if (plank.x + plank.width > stage.getScene().getWidth()) {
+            if (plank.x + plank.width > stage.getScene().getWidth() - 5) {
                 plank.x = stage.getScene().getWidth() - plank.width;
             }
         });
     }
 
-    private void checkGame()
+    public void commandGameEnd()
+    {
+        for (Block block : blocks) {
+            block.render();
+        }
+        blocks.clear();
+        plank.destroy();
+
+        for (Ball ball : balls) {
+            ball.destroy();
+        }
+        balls.clear();
+    }
+
+    public void commandNewBall()
+    {
+        Platform.runLater(() -> {
+            Ball newBall = new Ball(root);
+            newBall.x = plank.x + plank.width / 2;
+            newBall.y = plank.y - newBall.radius;
+            newBall.dx = Math.random() * 6 - 3;
+            newBall.dy = Math.random() * 4 - 4;
+            newBall.randomColor();
+            balls.add(newBall);
+            Thread thread = new Thread(newBall);
+            ballsThread.add(thread);
+        });
+    }
+
+    private void check()
     {
         Platform.runLater(() -> {
             stage.setTitle("Arcanoid - lives: " + lives + ", count: " + count);
 
-            boolean isEmpty = true;
-            boolean isEmptyBall = true;
-            for (Block block : blocks) {
-                if (block.rectangle.isVisible()) {
-                    isEmpty = false;
-                    break;
-                }
-            }
-            for (Ball ball: balls) {
-                if (ball.circle.isVisible()) {
-                    isEmptyBall = false;
-                    break;
-                }
-            }
-            if (isEmpty) {
+            if (blocks.size() == 0) {
                 timer.cancel();
                 stage.setTitle("Arcanoid");
                 new Popup().show("Games win\nCount: " + count);
+                commandGameEnd();
             }
 
-            if (lives <= 0 || isEmptyBall) {
+            if (balls.size() == 0) {
+                lives--;
+                commandNewBall();
+            }
+
+            if (lives <= 0) {
                 timer.cancel();
                 stage.setTitle("Arcanoid");
                 new Popup().show("Games failed\nCount: " + count);
+                commandGameEnd();
             }
         });
     }
 
     public void render()
     {
-        for (Block block : blocks) {
-            block.render();
+        for (Thread thread : blocksThread) {
+            thread.start();
         }
 
         plank.render();
 
-        for (Ball ball : balls) {
-            ball.render();
+        for (Thread thread : ballsThread) {
+            thread.start();
         }
     }
 
@@ -188,56 +223,55 @@ public class Arcanoid
             if (!ball.circle.isVisible()) {
                 continue;
             }
+
             if (CollisionDetection.BoxBox(plank.rectangle, ball.getRectangle())) {
                 ball.dy = -ball.dy; // @todo
                 ball.dy += Math.random();
-                break;
             }
 
             if (ball.y + ball.radius + ball.dy > stage.getScene().getHeight()) {
-                lives--;
                 ball.destroy();
                 continue;
             }
 
             // ball to ball cd
-            for (Ball ballOther : balls) {
-                if (!ballOther.circle.isVisible()) {
-                    continue;
-                }
-                if (ballOther.equals(ball)) {
-                    continue;
-                }
-                if (CollisionDetection.CircleCircle(ballOther.getCircle(), ball.getCircle())) {
-                    ballOther.dy = -ballOther.dy; // @todo
-                    ballOther.dy += Math.random();
-                    break;
+            int index = balls.indexOf(ball);
+            if (balls.size() > 1 && index < balls.size() - 1) {
+                for (Ball ballOther : balls.subList(index + 1, balls.size())) {
+                    if (!ballOther.circle.isVisible() || ballOther.equals(ball)) {
+                        continue;
+                    }
+                    if (CollisionDetection.CircleCircle(ballOther.getCircle(), ball.getCircle())) {
+                        ballOther.dy = -ballOther.dy; // @todo
+                        ballOther.dy += Math.random();
+                        break;
+                    }
                 }
             }
-
-            ball.move();
         }
 
         for (Block block : blocks) {
             for (Ball ball : balls) {
                 if (ball.circle.isVisible() && block.rectangle.isVisible() &&
-                    CollisionDetection.BoxBox(block.rectangle, ball.getRectangle())) {
+                    CollisionDetection.BoxCircle(block.rectangle, ball.getCircle())) {
                     block.destroy();
                     blocks.remove(block);
                     ball.dy = -ball.dy; // @todo
                     ball.dy += Math.random();
                     count++;
 
-                    if (Math.random() * 100 < 20 * lives) {
+                    if (Math.random() * 100 < (20 - balls.size()) * lives) {
                         Platform.runLater(() -> {
                             Ball newBall = new Ball(root);
                             newBall.radius = Math.random() * 10 + 10;
-                            newBall.x = ball.x;
+                            newBall.x = ball.x + newBall.radius + ball.radius;
                             newBall.y = ball.y + newBall.radius;
                             newBall.dx = Math.random() * 6 - 3;
                             newBall.dy = Math.random() * 2 + 2;
                             newBall.randomColor();
                             balls.add(newBall);
+                            Thread thread = new Thread(newBall);
+                            ballsThread.add(thread);
                         });
                     }
 

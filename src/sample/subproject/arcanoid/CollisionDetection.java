@@ -36,7 +36,7 @@ public class CollisionDetection
         double dx = first.getCenterX() - second.getCenterX();
         double dy = first.getCenterY() - second.getCenterY();
         double distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance < first.getRadius() + second.getRadius()) {
+        if (distance <= first.getRadius() + second.getRadius()) {
             return true;
         }
 

@@ -1,10 +1,11 @@
 package sample.subproject.arcanoid;
 
+import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
-public class Block
+public class Block implements Runnable
 {
     public double x;
     public double y;
@@ -30,12 +31,19 @@ public class Block
 
     public void destroy()
     {
-        //pane.getChildren().remove(rectangle);
-        rectangle.setVisible(false);
+        Platform.runLater(() -> {
+            pane.getChildren().remove(rectangle);
+        });
     }
 
     public void randomColor()
     {
         rectangle.setFill(Color.color(Math.random(), Math.random(), Math.random()));
+    }
+
+    @Override
+    public void run()
+    {
+        render();
     }
 }
