@@ -16,19 +16,22 @@ import sample.window.Popup;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class Arcanoid
 {
     Stage stage;
     Group root;
+
     Timer timer;
+    ExecutorService executor;
 
     ArrayList<Block> blocks;
-    Block plank;
+    Plank plank;
     ArrayList<Ball> balls;
-
-    ArrayList<Thread> blocksThread;
-    ArrayList<Thread> ballsThread;
 
     int lives;
     int count;
@@ -79,7 +82,7 @@ public class Arcanoid
     public void commandExit()
     {
         System.out.println("exit arcanoid");
-        timer.cancel();
+        commandGameEnd();
         stage.hide();
     }
 
@@ -91,7 +94,6 @@ public class Arcanoid
         count = 0;
 
         blocks = new ArrayList<>();
-        blocksThread = new ArrayList<>();
         for (int j = 0; j < 5; j++) {
             for (int i = 0; i < 14; i++) {
                 Block block = new Block(root);
@@ -101,25 +103,20 @@ public class Arcanoid
                 block.x = 5 + i * (block.width + 2);
                 block.y = 25 + j * (block.height + 2);
                 blocks.add(block);
-                Thread thread = new Thread(block);
-                blocksThread.add(thread);
             }
         }
 
-        plank = new Block(root);
+        plank = new Plank(root);
         plank.width = 150;
         plank.height = 30;
         plank.x = stage.getScene().getWidth() / 2 - plank.width / 2;
         plank.y = stage.getScene().getHeight() - plank.height - 5;
 
         balls = new ArrayList<>();
-        ballsThread = new ArrayList<>();
         Ball ball = new Ball(root);
         ball.x = plank.x;
         ball.y = plank.y - 30;
         balls.add(ball);
-        Thread thread = new Thread(ball);
-        ballsThread.add(thread);
 
         TimerTask timerTask = new TimerTask()
         {
@@ -135,24 +132,23 @@ public class Arcanoid
         if (timer != null) {
             timer.cancel();
         }
+        executor = Executors.newCachedThreadPool();
+
         timer = new Timer("loop");
         timer.schedule(timerTask, 0, 20L);
-
-        stage.getScene().setOnMouseMoved(mouseEvent -> {
-            plank.x = mouseEvent.getX() - plank.width / 2;
-            if (plank.x < 5) {
-                plank.x = 5;
-            }
-            if (plank.x + plank.width > stage.getScene().getWidth() - 5) {
-                plank.x = stage.getScene().getWidth() - plank.width;
-            }
-        });
     }
 
     public void commandGameEnd()
     {
+        try {
+            timer.cancel();
+            timer.wait(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         for (Block block : blocks) {
-            block.render();
+            block.destroy();
         }
         blocks.clear();
         plank.destroy();
@@ -161,6 +157,13 @@ public class Arcanoid
             ball.destroy();
         }
         balls.clear();
+
+        try {
+            executor.shutdown();
+            executor.awaitTermination(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public void commandNewBall()
@@ -173,15 +176,14 @@ public class Arcanoid
             newBall.dy = Math.random() * 4 - 4;
             newBall.randomColor();
             balls.add(newBall);
-            Thread thread = new Thread(newBall);
-            ballsThread.add(thread);
         });
     }
 
     private void check()
     {
         Platform.runLater(() -> {
-            stage.setTitle("Arcanoid - lives: " + lives + ", count: " + count);
+            ThreadPoolExecutor poolExecutor = (ThreadPoolExecutor)executor;
+            stage.setTitle("Arcanoid - lives: " + lives + ", count: " + count + " threads: " + poolExecutor.getQueue().size());
 
             if (blocks.size() == 0) {
                 timer.cancel();
@@ -206,15 +208,14 @@ public class Arcanoid
 
     public void render()
     {
-        for (Thread thread : blocksThread) {
-            thread.start();
+        for (Block block: blocks) {
+            executor.execute(block);
+        }
+        for (Ball ball : balls) {
+            executor.execute(ball);
         }
 
-        plank.render();
-
-        for (Thread thread : ballsThread) {
-            thread.start();
-        }
+        executor.execute(plank);
     }
 
     public void update()
@@ -229,9 +230,12 @@ public class Arcanoid
                 ball.dy += Math.random();
             }
 
-            if (ball.y + ball.radius + ball.dy > stage.getScene().getHeight()) {
-                ball.destroy();
-                continue;
+            if (ball.y + ball.radius + ball.dy > stage.getScene().getHeight() - plank.height) {
+                Platform.runLater(() -> {
+                    ball.destroy();
+                    balls.remove(ball);
+                });
+                return;
             }
 
             // ball to ball cd
@@ -254,8 +258,6 @@ public class Arcanoid
             for (Ball ball : balls) {
                 if (ball.circle.isVisible() && block.rectangle.isVisible() &&
                     CollisionDetection.BoxCircle(block.rectangle, ball.getCircle())) {
-                    block.destroy();
-                    blocks.remove(block);
                     ball.dy = -ball.dy; // @todo
                     ball.dy += Math.random();
                     count++;
@@ -270,10 +272,13 @@ public class Arcanoid
                             newBall.dy = Math.random() * 2 + 2;
                             newBall.randomColor();
                             balls.add(newBall);
-                            Thread thread = new Thread(newBall);
-                            ballsThread.add(thread);
                         });
                     }
+
+                    Platform.runLater(() -> {
+                        block.destroy();
+                        blocks.remove(block);
+                    });
 
                     return;
                 }

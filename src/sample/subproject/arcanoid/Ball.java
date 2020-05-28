@@ -92,7 +92,6 @@ public class Ball implements Runnable
     @Override
     public void run()
     {
-        System.out.println("run ball thread");
         move();
         render();
     }
