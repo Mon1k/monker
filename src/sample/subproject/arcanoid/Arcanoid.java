@@ -19,7 +19,6 @@ import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 public class Arcanoid
 {
@@ -35,6 +34,7 @@ public class Arcanoid
 
     int lives;
     int count;
+    boolean running = false;
 
     public Arcanoid()
     {
@@ -92,6 +92,7 @@ public class Arcanoid
 
         lives = 3;
         count = 0;
+        running = true;
 
         blocks = new ArrayList<>();
         for (int j = 0; j < 5; j++) {
@@ -123,9 +124,11 @@ public class Arcanoid
             @Override
             public void run()
             {
-                update();
-                render();
-                check();
+                if (running) {
+                    update();
+                    render();
+                    check();
+                }
             }
         };
 
@@ -140,12 +143,9 @@ public class Arcanoid
 
     public void commandGameEnd()
     {
-        try {
-            timer.cancel();
-            timer.wait(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        running = false;
+        timer.cancel();
+        executor.shutdown();
 
         for (Block block : blocks) {
             block.destroy();
@@ -157,13 +157,6 @@ public class Arcanoid
             ball.destroy();
         }
         balls.clear();
-
-        try {
-            executor.shutdown();
-            executor.awaitTermination(5, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     public void commandNewBall()
@@ -181,12 +174,15 @@ public class Arcanoid
 
     private void check()
     {
+        if (!running) {
+            return;
+        }
+
         Platform.runLater(() -> {
-            ThreadPoolExecutor poolExecutor = (ThreadPoolExecutor)executor;
+            ThreadPoolExecutor poolExecutor = (ThreadPoolExecutor) executor;
             stage.setTitle("Arcanoid - lives: " + lives + ", count: " + count + " threads: " + poolExecutor.getQueue().size());
 
             if (blocks.size() == 0) {
-                timer.cancel();
                 stage.setTitle("Arcanoid");
                 new Popup().show("Games win\nCount: " + count);
                 commandGameEnd();
@@ -198,7 +194,6 @@ public class Arcanoid
             }
 
             if (lives <= 0) {
-                timer.cancel();
                 stage.setTitle("Arcanoid");
                 new Popup().show("Games failed\nCount: " + count);
                 commandGameEnd();
@@ -208,14 +203,20 @@ public class Arcanoid
 
     public void render()
     {
-        for (Block block: blocks) {
-            executor.execute(block);
+        for (Block block : blocks) {
+            //block.render();
+            Platform.runLater(() -> {
+                executor.execute(block);
+            });
         }
         for (Ball ball : balls) {
-            executor.execute(ball);
+            //ball.render();
+            Platform.runLater(() -> {
+                executor.execute(ball);
+            });
         }
 
-        executor.execute(plank);
+        plank.render();
     }
 
     public void update()
@@ -224,6 +225,8 @@ public class Arcanoid
             if (!ball.circle.isVisible()) {
                 continue;
             }
+
+            ball.move();
 
             if (CollisionDetection.BoxBox(plank.rectangle, ball.getRectangle())) {
                 ball.dy = -ball.dy; // @todo
