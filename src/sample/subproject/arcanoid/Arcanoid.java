@@ -13,9 +13,7 @@ import javafx.scene.input.KeyCombination;
 import javafx.stage.Stage;
 import sample.window.Popup;
 
-import java.util.ArrayList;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -174,11 +172,11 @@ public class Arcanoid
 
     private void check()
     {
-        if (!running) {
-            return;
-        }
-
         Platform.runLater(() -> {
+            if (!running) {
+                return;
+            }
+
             ThreadPoolExecutor poolExecutor = (ThreadPoolExecutor) executor;
             stage.setTitle("Arcanoid - lives: " + lives + ", count: " + count + " threads: " + poolExecutor.getQueue().size());
 
@@ -203,17 +201,30 @@ public class Arcanoid
 
     public void render()
     {
-        for (Block block : blocks) {
-            //block.render();
-            Platform.runLater(() -> {
-                executor.execute(block);
-            });
+        if (!running) {
+            return;
         }
-        for (Ball ball : balls) {
-            //ball.render();
-            Platform.runLater(() -> {
-                executor.execute(ball);
-            });
+
+        synchronized (blocks.iterator()) {
+            for (Block block : blocks) {
+                //block.render();
+                Platform.runLater(() -> {
+                    if (running && !executor.isShutdown()) {
+                        executor.execute(block);
+                    }
+                });
+            }
+        }
+
+        synchronized (balls.iterator()) {
+            for (Ball ball : balls) {
+                ball.render();
+                /*Platform.runLater(() -> {
+                    if (running && !executor.isShutdown()) {
+                        executor.execute(ball);
+                    }
+                });*/
+            }
         }
 
         plank.render();
@@ -221,6 +232,10 @@ public class Arcanoid
 
     public void update()
     {
+        if (!running) {
+            return;
+        }
+
         for (Ball ball : balls) {
             if (!ball.circle.isVisible()) {
                 continue;
