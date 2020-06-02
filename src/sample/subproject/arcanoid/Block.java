@@ -21,6 +21,10 @@ public class Block implements Runnable
         this.pane.getChildren().add(rectangle);
     }
 
+    public void update()
+    {
+    }
+
     public void render()
     {
         rectangle.setX(x);
@@ -31,9 +35,7 @@ public class Block implements Runnable
 
     public void destroy()
     {
-        Platform.runLater(() -> {
-            pane.getChildren().remove(rectangle);
-        });
+        Platform.runLater(() -> pane.getChildren().remove(rectangle));
     }
 
     public void randomColor()
@@ -44,6 +46,7 @@ public class Block implements Runnable
     @Override
     public void run()
     {
+        update();
         render();
     }
 }

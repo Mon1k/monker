@@ -18,6 +18,7 @@ import javafx.stage.Stage;
 import sample.file.FileExt;
 import sample.file.FileUtils;
 import sample.subproject.arcanoid.Arcanoid;
+import sample.subproject.dbviewer.DbViewer;
 import sample.table.TableCommander;
 import sample.table.TableRowCommander;
 import sample.tests.fileread.FileRead;
@@ -43,7 +44,7 @@ public class Main extends Application
     private VBox root;
 
     @Override
-    public void start(Stage stage) throws Exception
+    public void start(Stage stage)
     {
         root = new VBox();
 
@@ -68,14 +69,10 @@ public class Main extends Application
         Menu fileMenu = new Menu("File");
         MenuItem newItem = new MenuItem("New");
         newItem.setAccelerator(KeyCombination.keyCombination("Ctrl+N"));
-        newItem.setOnAction(actionEvent -> {
-            commandNew();
-        });
+        newItem.setOnAction(actionEvent -> commandNew());
         MenuItem openItem = new MenuItem("Open");
         openItem.setAccelerator(new KeyCodeCombination(KeyCode.F3));
-        openItem.setOnAction(actionEvent -> {
-            commandOpen();
-        });
+        openItem.setOnAction(actionEvent -> commandOpen());
         SeparatorMenuItem seperator = new SeparatorMenuItem();
         MenuItem exitItem = new MenuItem("Exit");
         exitItem.setOnAction(actionEvent -> commandExit());
@@ -86,9 +83,7 @@ public class Main extends Application
         Menu commandMenu = new Menu("Command");
         MenuItem commandItemMenuItem = new MenuItem("Reload");
         commandItemMenuItem.setAccelerator(KeyCombination.keyCombination("Ctrl+R"));
-        commandItemMenuItem.setOnAction(actionEvent -> {
-            getCurrentPanel().refresh();
-        });
+        commandItemMenuItem.setOnAction(actionEvent -> getCurrentPanel().refresh());
         MenuItem deleteItem = new MenuItem("Delete");
         deleteItem.setAccelerator(KeyCombination.keyCombination("Delete"));
         deleteItem.setOnAction(actionEvent -> commandDelete());
@@ -108,11 +103,14 @@ public class Main extends Application
             });
         });
         MenuItem speedTestReadFileItem = new MenuItem("Speed test read file");
-        subCommandMenu.getItems().add(speedTestReadFileItem);
         speedTestReadFileItem.setOnAction(actionEvent -> new FileRead());
+        subCommandMenu.getItems().add(speedTestReadFileItem);
         MenuItem parallelAracanoidItem = new MenuItem("Parallel arcanoid");
-        subCommandMenu.getItems().add(parallelAracanoidItem);
         parallelAracanoidItem.setOnAction(actionEvent -> new Arcanoid());
+        subCommandMenu.getItems().add(parallelAracanoidItem);
+        MenuItem dbViewerItem = new MenuItem("DB Viewer");
+        dbViewerItem.setOnAction(actionEvent -> new DbViewer());
+        subCommandMenu.getItems().add(dbViewerItem);
 
         commandMenu.getItems().addAll(commandItemMenuItem, deleteItem, subCommandMenu);
         menuBar.getMenus().add(commandMenu);
@@ -122,9 +120,7 @@ public class Main extends Application
         aboutItemMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.F1));
         aboutMenu.getItems().addAll(aboutItemMenuItem);
         menuBar.getMenus().add(aboutMenu);
-        aboutItemMenuItem.setOnAction(actionEvent -> {
-            new About().show();
-        });
+        aboutItemMenuItem.setOnAction(actionEvent -> new About().show());
         root.getChildren().add(menuBar);
     }
 
@@ -161,9 +157,7 @@ public class Main extends Application
 
         editor.setDirectory(getCurrentPanel().getPanel().current);
         editor.show();
-        editor.getStage().setOnHiding(windowEvent -> {
-            getCurrentPanel().refresh();
-        });
+        editor.getStage().setOnHiding(windowEvent -> getCurrentPanel().refresh());
 
         System.out.println("command - new file");
     }
@@ -207,9 +201,7 @@ public class Main extends Application
                 editor.open();
             }
             editor.show();
-            editor.getStage().setOnHiding(windowEvent -> {
-                getCurrentPanel().refresh();
-            });
+            editor.getStage().setOnHiding(windowEvent -> getCurrentPanel().refresh());
         }
     }
 
@@ -263,7 +255,7 @@ public class Main extends Application
             }
 
         } else {
-            BasicFileAttributes view = null;
+            BasicFileAttributes view;
             try {
                 view = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
                 String info = "Directory: " + file.getName() + "\n"
@@ -351,39 +343,25 @@ public class Main extends Application
     public void initPanelBottom()
     {
         Button f1 = new Button("F1 - about");
-        f1.setOnAction(actionEvent -> {
-            new About().show();
-        });
+        f1.setOnAction(actionEvent -> new About().show());
 
         Button f3 = new Button("F3 - read");
-        f3.setOnAction(actionEvent -> {
-            commandOpen();
-        });
+        f3.setOnAction(actionEvent -> commandOpen());
 
         Button f4 = new Button("F4 - edit");
-        f4.setOnAction(actionEvent -> {
-            commandOpen();
-        });
+        f4.setOnAction(actionEvent -> commandOpen());
 
         Button f5 = new Button("F5 - copy");
-        f5.setOnAction(actionEvent -> {
-            commandCopy();
-        });
+        f5.setOnAction(actionEvent -> commandCopy());
 
         Button f6 = new Button("F6 - rename");
-        f6.setOnAction(actionEvent -> {
-            commandRename();
-        });
+        f6.setOnAction(actionEvent -> commandRename());
 
         Button f7 = new Button("F7 - create dir");
-        f7.setOnAction(actionEvent -> {
-            commandCreateDirectory();
-        });
+        f7.setOnAction(actionEvent -> commandCreateDirectory());
 
         Button f9 = new Button("F9 - delete");
-        f9.setOnAction(actionEvent -> {
-            commandDelete();
-        });
+        f9.setOnAction(actionEvent -> commandDelete());
 
         Button f10 = new Button("F10 - exit");
         f10.setOnAction(actionEvent -> commandExit());

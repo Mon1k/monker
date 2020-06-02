@@ -3,10 +3,7 @@ package sample.subproject.arcanoid;
 import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
@@ -33,6 +30,7 @@ public class Arcanoid
     int lives;
     int count;
     boolean running = false;
+    boolean autoPlank = false;
 
     public Arcanoid()
     {
@@ -55,13 +53,16 @@ public class Arcanoid
         MenuItem newBallItem = new MenuItem("New ball");
         newBallItem.setOnAction(actionEvent -> commandNewBall());
         newBallItem.setAccelerator(KeyCombination.keyCombination("Ctrl+B"));
-        toolMenu.getItems().add(newBallItem);
+        CheckMenuItem autoMenuItem = new CheckMenuItem("Auto pank");
+        autoMenuItem.setAccelerator(KeyCombination.keyCombination("Ctrl+A"));
+        autoMenuItem.setOnAction(actionEvent -> autoPlank = !autoPlank);
+        toolMenu.getItems().addAll(newBallItem, autoMenuItem);
 
         Menu aboutMenu = new Menu("About");
         MenuItem aboutItemMenuItem = new MenuItem("About");
         aboutItemMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.F1));
-        aboutMenu.getItems().add(aboutItemMenuItem);
         aboutItemMenuItem.setOnAction(actionEvent -> new Popup().show("Arcanoid"));
+        aboutMenu.getItems().add(aboutItemMenuItem);
 
         menuBar.getMenus().addAll(fileMenu, toolMenu, aboutMenu);
 
@@ -155,6 +156,7 @@ public class Arcanoid
             ball.destroy();
         }
         balls.clear();
+        stage.setTitle("Arcanoid");
     }
 
     public void commandNewBall()
@@ -170,6 +172,27 @@ public class Arcanoid
         });
     }
 
+    public void commandAutoPlank()
+    {
+        if (!autoPlank) {
+            return;
+        }
+
+        int index = -1;
+        double max = 0;
+        for (Ball ball : balls) {
+            if (ball.y > max && ball.dy > 0) {
+                index = balls.indexOf(ball);
+                max = ball.y;
+            }
+        }
+
+        if (index >= 0) {
+            Ball ball = balls.get(index);
+            plank.x = ball.x - plank.width / 2;
+        }
+    }
+
     private void check()
     {
         Platform.runLater(() -> {
@@ -181,9 +204,9 @@ public class Arcanoid
             stage.setTitle("Arcanoid - lives: " + lives + ", count: " + count + " threads: " + poolExecutor.getQueue().size());
 
             if (blocks.size() == 0) {
-                stage.setTitle("Arcanoid");
-                new Popup().show("Games win\nCount: " + count);
                 commandGameEnd();
+                new Popup().show("Games win\nCount: " + count);
+                return;
             }
 
             if (balls.size() == 0) {
@@ -192,9 +215,8 @@ public class Arcanoid
             }
 
             if (lives <= 0) {
-                stage.setTitle("Arcanoid");
-                new Popup().show("Games failed\nCount: " + count);
                 commandGameEnd();
+                new Popup().show("Games failed\nCount: " + count);
             }
         });
     }
@@ -207,7 +229,6 @@ public class Arcanoid
 
         synchronized (blocks.iterator()) {
             for (Block block : blocks) {
-                //block.render();
                 Platform.runLater(() -> {
                     if (running && !executor.isShutdown()) {
                         executor.execute(block);
@@ -236,14 +257,16 @@ public class Arcanoid
             return;
         }
 
+        commandAutoPlank();
+
         for (Ball ball : balls) {
             if (!ball.circle.isVisible()) {
                 continue;
             }
 
-            ball.move();
+            ball.update();
 
-            if (CollisionDetection.BoxBox(plank.rectangle, ball.getRectangle())) {
+            if (CollisionDetection.BoxCircle(plank.rectangle, ball.getCircle())) {
                 ball.dy = -ball.dy; // @todo
                 ball.dy += Math.random();
             }
@@ -264,8 +287,11 @@ public class Arcanoid
                         continue;
                     }
                     if (CollisionDetection.CircleCircle(ballOther.getCircle(), ball.getCircle())) {
-                        ballOther.dy = -ballOther.dy; // @todo
-                        ballOther.dy += Math.random();
+                        if ((ballOther.dy > 0 && ball.dy < 0) || (ballOther.dy < 0 && ball.dy > 0)) {
+                            ballOther.dy = -ballOther.dy; // @todo
+                            ballOther.dy += Math.random();
+                        }
+                        ball.dy = -ball.dy;
                         break;
                     }
                 }

@@ -58,7 +58,7 @@ public class Ball implements Runnable
         circle.setRadius(radius);
     }
 
-    public void move()
+    public void update()
     {
         if (x - radius < 0) {
             dx = -dx;
@@ -79,9 +79,7 @@ public class Ball implements Runnable
 
     public void destroy()
     {
-        Platform.runLater(() -> {
-            pane.getChildren().remove(circle);
-        });
+        Platform.runLater(() -> pane.getChildren().remove(circle));
     }
 
     public void randomColor()
@@ -92,7 +90,7 @@ public class Ball implements Runnable
     @Override
     public void run()
     {
-        move();
+        update();
         render();
     }
 }

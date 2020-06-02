@@ -8,14 +8,17 @@ public class Plank extends Block
     {
         super(pane);
 
-        pane.getScene().setOnMouseMoved(mouseEvent -> {
-            x = mouseEvent.getX() - width / 2;
-            if (x < 5) {
-                x = 5;
-            }
-            if (x + width > pane.getScene().getWidth() - 10) {
-                x = pane.getScene().getWidth() - width;
-            }
-        });
+        pane.getScene().setOnMouseMoved(mouseEvent -> x = mouseEvent.getX() - width / 2);
+    }
+
+    public void update()
+    {
+        super.update();
+        if (x < 5) {
+            x = 5;
+        }
+        if (x + width > pane.getScene().getWidth() - 10) {
+            x = pane.getScene().getWidth() - width;
+        }
     }
 }
