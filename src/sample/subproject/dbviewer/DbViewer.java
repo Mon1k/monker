@@ -1,21 +1,22 @@
 package sample.subproject.dbviewer;
 
 import javafx.scene.Scene;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.FlowPane;
 import javafx.stage.Stage;
+import sample.subproject.dbviewer.ui.Database;
+import sample.subproject.dbviewer.ui.Table;
 import sample.window.Popup;
 
 public class DbViewer
 {
     Stage stage;
     FlowPane root;
+
+    String database = "test";
 
     public DbViewer()
     {
@@ -27,6 +28,10 @@ public class DbViewer
         Menu fileMenu = new Menu("File");
         MenuItem newItem = new MenuItem("New");
         newItem.setAccelerator(KeyCombination.keyCombination("Ctrl+N"));
+        newItem.setOnAction(actionEvent -> {
+            Database db = new Database();
+            db.setOnCloseRequest(windowEvent -> database = db.getDatabase());
+        });
         SeparatorMenuItem seperator = new SeparatorMenuItem();
         MenuItem exitItem = new MenuItem("Exit");
         exitItem.setOnAction(actionEvent -> commandExit());
@@ -34,9 +39,19 @@ public class DbViewer
         fileMenu.getItems().addAll(newItem, seperator, exitItem);
 
         Menu toolMenu = new Menu("Tool");
+        MenuItem listDatabaseItem = new MenuItem("List datatables");
+        listDatabaseItem.setOnAction(actionEvent -> {});
         MenuItem newTableItem = new MenuItem("New table");
         newTableItem.setAccelerator(KeyCombination.keyCombination("Ctrl+B"));
-        toolMenu.getItems().addAll(newTableItem);
+        newTableItem.setOnAction(actionEvent -> {
+            if (this.database.length() > 0) {
+                new Table(this.database);
+            } else {
+                Alert alert = new Alert(Alert.AlertType.ERROR, "Empty database");
+                alert.showAndWait();
+            }
+        });
+        toolMenu.getItems().addAll(listDatabaseItem, newTableItem);
 
         Menu aboutMenu = new Menu("About");
         MenuItem aboutItemMenuItem = new MenuItem("About");
