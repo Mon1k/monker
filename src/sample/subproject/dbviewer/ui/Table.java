@@ -1,5 +1,6 @@
 package sample.subproject.dbviewer.ui;
 
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -21,8 +22,9 @@ public class Table extends Stage
     public Table(String database)
     {
         this.database = database;
+        this.columns = new ArrayList<>();
 
-        FlowPane root = new FlowPane();
+        FlowPane root = new FlowPane(Orientation.VERTICAL, 10, 10);
         Label label = new Label("Enter name:");
         TextField name = new TextField();
         Label columns = new Label("Columns:");
@@ -44,12 +46,15 @@ public class Table extends Stage
 
         Button button = new Button("Create");
         button.setOnAction(actionEvent -> {
-            commandCreateTable(name.getText());
+            if (name.getText().length() > 0) {
+                commandCreateTable(name.getText());
+                hide();
+            }
         });
         root.getChildren().addAll(label, name, addColumn, columns, new Separator(), button);
         root.setAlignment(Pos.CENTER);
 
-        Scene scene = new Scene(root);
+        Scene scene = new Scene(root, 600, 400);
         setScene(scene);
         setTitle("Create database");
         show();
@@ -63,8 +68,14 @@ public class Table extends Stage
         String url = "jdbc:sqlite:" + file.getAbsolutePath().replace("\\", "/") + "/" + name;
         try (Connection conn = DriverManager.getConnection(url)) {
             if (conn != null) {
+                String sql = "CREATE TABLE IF NOT EXISTS " + name + "(";
+                for (Column column : columns) {
+                    sql += column.name + " " + column.type + ",";
+                }
+                sql = sql.substring(0, sql.length() - 1) + ");";
+                System.out.println("sql: " + sql);
                 Statement statement = conn.createStatement();
-                statement.execute("");
+                statement.execute(sql);
             }
         } catch (SQLException throwables) {
             throwables.printStackTrace();

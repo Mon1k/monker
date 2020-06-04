@@ -1,5 +1,6 @@
 package sample.subproject.dbviewer.ui;
 
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -21,17 +22,20 @@ public class Database extends Stage
 
     public Database()
     {
-        FlowPane root = new FlowPane();
+        FlowPane root = new FlowPane(Orientation.VERTICAL, 10, 10);
         Label label = new Label("Enter name:");
         TextField name = new TextField(this.database);
         Button button = new Button("Create");
         button.setOnAction(actionEvent -> {
-            commandCreateDatabase(name.getText());
+            if (name.getText().length() > 0) {
+                commandCreateDatabase(name.getText());
+                hide();
+            }
         });
         root.getChildren().addAll(label, name, new Separator(), button);
         root.setAlignment(Pos.CENTER);
 
-        Scene scene = new Scene(root);
+        Scene scene = new Scene(root, 400, 100);
         setScene(scene);
         setTitle("Create database");
         show();

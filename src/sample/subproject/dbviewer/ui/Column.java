@@ -16,8 +16,9 @@ public class Column extends Stage
         FlowPane root = new FlowPane();
         Label label = new Label("Enter name:");
         TextField name = new TextField();
-        ListView<String> types = new ListView<>();
+        ChoiceBox<String> types = new ChoiceBox<>();
         types.getItems().addAll("String", "Integer");
+        types.getSelectionModel().select(0);
 
         Button button = new Button("Create");
         button.setOnAction(actionEvent -> {

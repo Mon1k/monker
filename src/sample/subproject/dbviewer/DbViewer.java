@@ -41,6 +41,8 @@ public class DbViewer
         Menu toolMenu = new Menu("Tool");
         MenuItem listDatabaseItem = new MenuItem("List datatables");
         listDatabaseItem.setOnAction(actionEvent -> {});
+        MenuItem listTablesItem = new MenuItem("List tables");
+        listTablesItem.setOnAction(actionEvent -> {});
         MenuItem newTableItem = new MenuItem("New table");
         newTableItem.setAccelerator(KeyCombination.keyCombination("Ctrl+B"));
         newTableItem.setOnAction(actionEvent -> {
