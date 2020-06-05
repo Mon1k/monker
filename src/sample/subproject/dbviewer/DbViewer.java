@@ -11,12 +11,15 @@ import sample.subproject.dbviewer.ui.Database;
 import sample.subproject.dbviewer.ui.Table;
 import sample.window.Popup;
 
+import java.util.ArrayList;
+
 public class DbViewer
 {
     Stage stage;
     FlowPane root;
 
     String database = "test";
+    sample.subproject.dbviewer.ui.tableview.Table tableView;
 
     public DbViewer()
     {
@@ -42,7 +45,7 @@ public class DbViewer
         MenuItem listDatabaseItem = new MenuItem("List datatables");
         listDatabaseItem.setOnAction(actionEvent -> {});
         MenuItem listTablesItem = new MenuItem("List tables");
-        listTablesItem.setOnAction(actionEvent -> {});
+        listTablesItem.setOnAction(actionEvent -> commandTableList());
         MenuItem newTableItem = new MenuItem("New table");
         newTableItem.setAccelerator(KeyCombination.keyCombination("Ctrl+B"));
         newTableItem.setOnAction(actionEvent -> {
@@ -53,7 +56,7 @@ public class DbViewer
                 alert.showAndWait();
             }
         });
-        toolMenu.getItems().addAll(listDatabaseItem, newTableItem);
+        toolMenu.getItems().addAll(listDatabaseItem, listTablesItem, newTableItem);
 
         Menu aboutMenu = new Menu("About");
         MenuItem aboutItemMenuItem = new MenuItem("About");
@@ -69,11 +72,18 @@ public class DbViewer
         stage.setScene(scene);
         stage.setTitle("DbView");
         stage.show();
+        stage.setOnCloseRequest(windowEvent -> commandExit());
     }
 
     public void commandExit()
     {
         System.out.println("exit dbviewer");
         stage.hide();
+    }
+
+    public void commandTableList()
+    {
+        ArrayList<String> rows = new ArrayList<>();
+        tableView = new sample.subproject.dbviewer.ui.tableview.Table(rows);
     }
 }

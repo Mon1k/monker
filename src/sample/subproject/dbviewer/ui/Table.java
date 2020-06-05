@@ -3,11 +3,11 @@ package sample.subproject.dbviewer.ui;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.io.File;
@@ -18,6 +18,8 @@ public class Table extends Stage
 {
     String database;
     ArrayList<Column> columns;
+    ScrollPane scrollPane;
+    VBox scrollPaneVBox;
 
     public Table(String database)
     {
@@ -25,24 +27,33 @@ public class Table extends Stage
         this.columns = new ArrayList<>();
 
         FlowPane root = new FlowPane(Orientation.VERTICAL, 10, 10);
-        Label label = new Label("Enter name:");
+        HBox hBox = new HBox();
+        Label label = new Label("Enter table name:");
         TextField name = new TextField();
-        Label columns = new Label("Columns:");
+        hBox.getChildren().addAll(label, name);
+
         Button addColumn = new Button("+");
         addColumn.setOnAction(actionEvent -> {
             Column column = new Column();
+            column.show();
             column.setOnHidden(windowEvent -> {
-                this.columns.add(column);
-                String text = "Columns:\n";
-                for (Column c : this.columns) {
-                    text += c.name + ": " + c.type + "\n";
-                }
-                columns.setText(text);
-                System.out.println(text);
+                addColumnToUi(column);
                 column.hide();
             });
         });
+        root.getChildren().addAll(hBox, addColumn);
 
+        scrollPane = new ScrollPane();
+        scrollPaneVBox = new VBox();
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
+
+        for (int i = 0; i < 10; i++) {
+            Column col1 = new Column();
+            col1.type = "integer";
+            col1.name = "id_"+i;
+            addColumnToUi(col1);
+        }
+        root.getChildren().addAll(new Label("Columns:"), scrollPane);
 
         Button button = new Button("Create");
         button.setOnAction(actionEvent -> {
@@ -51,12 +62,13 @@ public class Table extends Stage
                 hide();
             }
         });
-        root.getChildren().addAll(label, name, addColumn, columns, new Separator(), button);
+        root.getChildren().addAll(button);
         root.setAlignment(Pos.CENTER);
 
         Scene scene = new Scene(root, 600, 400);
         setScene(scene);
-        setTitle("Create database");
+        setResizable(false);
+        setTitle("Create table");
         show();
     }
 
@@ -80,5 +92,28 @@ public class Table extends Stage
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
+    }
+
+    public void addColumnToUi(Column column)
+    {
+        this.columns.add(column);
+        scrollPaneVBox.getChildren().clear();
+
+        for (Column c : this.columns) {
+            HBox hBox = new HBox(10);
+            Label name = new Label(c.name);
+            Label type = new Label(c.type);
+            Button delButton = new Button("X");
+            delButton.setOnAction(actionEvent -> {
+                scrollPaneVBox.getChildren().remove(hBox);
+                columns.remove(c);
+            });
+            hBox.getChildren().addAll(name, type, delButton);
+            scrollPaneVBox.getChildren().add(hBox);
+        }
+
+        scrollPane.setContent(scrollPaneVBox);
+        scrollPane.setVmax(200);
+        scrollPane.setPrefSize(400, 200);
     }
 }

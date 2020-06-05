@@ -37,6 +37,7 @@ public class Database extends Stage
 
         Scene scene = new Scene(root, 400, 100);
         setScene(scene);
+        setResizable(false);
         setTitle("Create database");
         show();
     }
