@@ -1,10 +1,16 @@
 package sample.subproject.dbviewer.ui.tableview;
 
-import javafx.beans.property.SimpleStringProperty;
-
-import java.util.ArrayList;
-
 public class TableRow
 {
-    ArrayList<SimpleStringProperty> rows;
+    String name;
+
+    public void setName(String name)
+    {
+        this.name = name;
+    }
+
+    public String getName()
+    {
+        return name;
+    }
 }

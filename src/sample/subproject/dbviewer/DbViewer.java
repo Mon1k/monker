@@ -8,6 +8,7 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.FlowPane;
 import javafx.stage.Stage;
 import sample.subproject.dbviewer.ui.Database;
+import sample.subproject.dbviewer.ui.Query;
 import sample.subproject.dbviewer.ui.Table;
 import sample.window.Popup;
 
@@ -83,7 +84,8 @@ public class DbViewer
 
     public void commandTableList()
     {
-        ArrayList<String> rows = new ArrayList<>();
+        Query query = new Query();
+        ArrayList<String> rows = query.query(database, "SELECT name FROM sqlite_master WHERE type='table'");
         tableView = new sample.subproject.dbviewer.ui.tableview.Table(rows);
     }
 }
