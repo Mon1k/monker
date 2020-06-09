@@ -1,16 +1,13 @@
 package sample.subproject.dbviewer.ui.tableview;
 
+import java.util.ArrayList;
+
 public class TableRow
 {
-    String name;
+    public ArrayList<TableCell> cells;
 
-    public void setName(String name)
+    public TableRow()
     {
-        this.name = name;
-    }
-
-    public String getName()
-    {
-        return name;
+        cells = new ArrayList<>();
     }
 }

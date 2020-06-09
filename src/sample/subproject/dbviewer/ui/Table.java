@@ -77,7 +77,7 @@ public class Table extends Stage
         System.out.println("Create table - " + name);
 
         File file = new File("");
-        String url = "jdbc:sqlite:" + file.getAbsolutePath().replace("\\", "/") + "/" + name;
+        String url = "jdbc:sqlite:" + file.getAbsolutePath().replace("\\", "/") + "/" + database;
         try (Connection conn = DriverManager.getConnection(url)) {
             if (conn != null) {
                 String sql = "CREATE TABLE IF NOT EXISTS " + name + "(";

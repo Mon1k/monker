@@ -7,12 +7,14 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.FlowPane;
 import javafx.stage.Stage;
+import sample.subproject.dbviewer.resultset.Row;
 import sample.subproject.dbviewer.ui.Database;
 import sample.subproject.dbviewer.ui.Query;
 import sample.subproject.dbviewer.ui.Table;
 import sample.window.Popup;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class DbViewer
 {
@@ -85,7 +87,8 @@ public class DbViewer
     public void commandTableList()
     {
         Query query = new Query();
-        ArrayList<String> rows = query.query(database, "SELECT name FROM sqlite_master WHERE type='table'");
+        ArrayList<Row>  rows = query.query(database, "SELECT type,name FROM sqlite_master WHERE type='table'");
         tableView = new sample.subproject.dbviewer.ui.tableview.Table(rows);
+        root.getChildren().add(tableView.getTable());
     }
 }
