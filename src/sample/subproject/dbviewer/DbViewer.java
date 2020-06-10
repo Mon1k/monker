@@ -5,7 +5,9 @@ import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
-import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import sample.subproject.dbviewer.resultset.Row;
 import sample.subproject.dbviewer.ui.Database;
@@ -14,12 +16,12 @@ import sample.subproject.dbviewer.ui.Table;
 import sample.window.Popup;
 
 import java.util.ArrayList;
-import java.util.Map;
 
 public class DbViewer
 {
     Stage stage;
-    FlowPane root;
+    VBox root;
+    HBox rootHBox;
 
     String database = "test";
     sample.subproject.dbviewer.ui.tableview.Table tableView;
@@ -27,7 +29,8 @@ public class DbViewer
     public DbViewer()
     {
         stage = new Stage();
-        root = new FlowPane();
+        root = new VBox();
+        rootHBox = new HBox();
 
         MenuBar menuBar = new MenuBar();
 
@@ -46,7 +49,8 @@ public class DbViewer
 
         Menu toolMenu = new Menu("Tool");
         MenuItem listDatabaseItem = new MenuItem("List datatables");
-        listDatabaseItem.setOnAction(actionEvent -> {});
+        listDatabaseItem.setOnAction(actionEvent -> {
+        });
         MenuItem listTablesItem = new MenuItem("List tables");
         listTablesItem.setOnAction(actionEvent -> commandTableList());
         MenuItem newTableItem = new MenuItem("New table");
@@ -59,7 +63,12 @@ public class DbViewer
                 alert.showAndWait();
             }
         });
-        toolMenu.getItems().addAll(listDatabaseItem, listTablesItem, newTableItem);
+        MenuItem queryItem = new MenuItem("Query");
+        queryItem.setOnAction(actionEvent -> {
+            Query query = new Query(this, database);
+            query.show();
+        });
+        toolMenu.getItems().addAll(listDatabaseItem, listTablesItem, newTableItem, queryItem);
 
         Menu aboutMenu = new Menu("About");
         MenuItem aboutItemMenuItem = new MenuItem("About");
@@ -69,7 +78,7 @@ public class DbViewer
 
         menuBar.getMenus().addAll(fileMenu, toolMenu, aboutMenu);
 
-        root.getChildren().addAll(menuBar);
+        root.getChildren().addAll(menuBar, rootHBox);
 
         Scene scene = new Scene(root, 1024, 768);
         stage.setScene(scene);
@@ -86,9 +95,20 @@ public class DbViewer
 
     public void commandTableList()
     {
-        Query query = new Query();
-        ArrayList<Row>  rows = query.query(database, "SELECT type,name FROM sqlite_master WHERE type='table'");
+        Query query = new Query(this, database);
+        ArrayList<Row> rows = query.query("SELECT type,name FROM sqlite_master WHERE type='table'");
+        addViewTable(rows);
+    }
+
+    public void addViewTable(ArrayList<Row> rows)
+    {
+        if (rows.isEmpty()) {
+            return;
+        }
+
         tableView = new sample.subproject.dbviewer.ui.tableview.Table(rows);
-        root.getChildren().add(tableView.getTable());
+        rootHBox.getChildren().clear();
+        rootHBox.getChildren().add(tableView.getTable());
+        HBox.setHgrow(tableView.getTable(), Priority.ALWAYS);
     }
 }
