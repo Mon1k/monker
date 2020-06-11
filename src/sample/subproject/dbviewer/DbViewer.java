@@ -66,7 +66,6 @@ public class DbViewer
         MenuItem queryItem = new MenuItem("Query");
         queryItem.setOnAction(actionEvent -> {
             Query query = new Query(this, database);
-            query.show();
         });
         toolMenu.getItems().addAll(listDatabaseItem, listTablesItem, newTableItem, queryItem);
 
@@ -95,8 +94,8 @@ public class DbViewer
 
     public void commandTableList()
     {
-        Query query = new Query(this, database);
-        ArrayList<Row> rows = query.query("SELECT type,name FROM sqlite_master WHERE type='table'");
+        sample.subproject.dbviewer.Query query = new sample.subproject.dbviewer.Query(database);
+        ArrayList<Row> rows = query.exec("SELECT type,name FROM sqlite_master WHERE type='table'");
         addViewTable(rows);
     }
 
