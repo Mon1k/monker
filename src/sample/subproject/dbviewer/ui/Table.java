@@ -9,6 +9,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import sample.subproject.dbviewer.Query;
 
 import java.io.File;
 import java.sql.*;
@@ -80,14 +81,13 @@ public class Table extends Stage
         String url = "jdbc:sqlite:" + file.getAbsolutePath().replace("\\", "/") + "/" + database;
         try (Connection conn = DriverManager.getConnection(url)) {
             if (conn != null) {
-                String sql = "CREATE TABLE IF NOT EXISTS " + name + "(";
+                StringBuilder sql = new StringBuilder("CREATE TABLE IF NOT EXISTS " + name + "(");
                 for (Column column : columns) {
-                    sql += column.name + " " + column.type + ",";
+                    sql.append(column.name).append(" ").append(column.type).append(",");
                 }
-                sql = sql.substring(0, sql.length() - 1) + ");";
-                System.out.println("sql: " + sql);
-                Statement statement = conn.createStatement();
-                statement.execute(sql);
+                sql = new StringBuilder(sql.substring(0, sql.length() - 1) + ");");
+                Query query = new Query(database);
+                query.exec(sql.toString());
             }
         } catch (SQLException throwables) {
             throwables.printStackTrace();

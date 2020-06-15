@@ -34,7 +34,7 @@ public class Query
             if (conn != null) {
                 Statement statement = conn.createStatement();
 
-                if (query.contains("select")) {
+                if (sample.utils.String.ContainsIgnoreCase(query, "select")) {
                     ResultSet resultSet = statement.executeQuery(query);
                     while (resultSet.next()) {
                         ResultSetMetaData resultSetMetaData = resultSet.getMetaData();

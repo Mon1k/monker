@@ -64,9 +64,7 @@ public class DbViewer
             }
         });
         MenuItem queryItem = new MenuItem("Query");
-        queryItem.setOnAction(actionEvent -> {
-            Query query = new Query(this, database);
-        });
+        queryItem.setOnAction(actionEvent -> new Query(this, database));
         toolMenu.getItems().addAll(listDatabaseItem, listTablesItem, newTableItem, queryItem);
 
         Menu aboutMenu = new Menu("About");
@@ -89,7 +87,7 @@ public class DbViewer
     public void commandExit()
     {
         System.out.println("exit dbviewer");
-        stage.hide();
+        stage.close();
     }
 
     public void commandTableList()
