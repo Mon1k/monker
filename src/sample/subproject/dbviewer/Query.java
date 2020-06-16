@@ -36,13 +36,26 @@ public class Query
 
                 if (sample.utils.String.ContainsIgnoreCase(query, "select")) {
                     ResultSet resultSet = statement.executeQuery(query);
+                    if (!resultSet.isBeforeFirst()) {
+                        System.out.println("Not found");
+                        return result;
+                    }
+
                     while (resultSet.next()) {
                         ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
                         Row row = new Row();
                         row.cells = new ArrayList<>();
+                        System.out.println("Column count=" + resultSetMetaData.getColumnCount());
+                        System.out.println("Column row=" + resultSet.getRow());
                         for (int i = 1; i <= resultSetMetaData.getColumnCount(); i++) {
                             String value = resultSet.getString(i);
-                            System.out.println(resultSetMetaData.getColumnName(i) + "=" + value);
+                            System.out.println("Column=" + resultSetMetaData.getCatalogName(i));
+                            System.out.println("Column value=" + value);
+                            System.out.println("Column type=" + resultSetMetaData.getColumnType(i));
+                            System.out.println("Column type name=" + resultSetMetaData.getColumnTypeName(i));
+                            System.out.println("Column classname=" + resultSetMetaData.getColumnClassName(i));
+                            System.out.println("Column table=" + resultSetMetaData.getTableName(i));
+                            System.out.println("Column label=" + resultSetMetaData.getColumnLabel(i));
 
                             Cell cell = new Cell();
                             cell.name = resultSetMetaData.getColumnName(i);
@@ -52,6 +65,7 @@ public class Query
                         result.add(row);
 
                     }
+                    System.out.println("rows=" + result.size());
                     resultSet.close();
                 } else {
                     statement.execute(query);
