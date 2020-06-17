@@ -112,7 +112,7 @@ public class Main extends Application
         dbViewerItem.setOnAction(actionEvent -> new DbViewer());
         subCommandMenu.getItems().add(dbViewerItem);
         MenuItem dbHibernateViewerItem = new MenuItem("Hibernate DB Viewer");
-        dbHibernateViewerItem.setOnAction(actionEvent -> new Alert(Alert.AlertType.CONFIRMATION, "Soon").show());
+        dbHibernateViewerItem.setOnAction(actionEvent -> new sample.subproject.hibernate.DbViewer());
         subCommandMenu.getItems().add(dbHibernateViewerItem);
 
         commandMenu.getItems().addAll(commandItemMenuItem, deleteItem, subCommandMenu);
