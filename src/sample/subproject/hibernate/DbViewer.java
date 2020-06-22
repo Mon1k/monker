@@ -10,8 +10,14 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
+import sample.subproject.hibernate.models.Test;
 import sample.window.Popup;
+
+import java.io.File;
 
 public class DbViewer
 {
@@ -38,6 +44,24 @@ public class DbViewer
         MenuItem testItem = new MenuItem("test query");
         testItem.setOnAction(actionEvent -> {
             Configuration configuration = new Configuration();
+            configuration
+                .addAnnotatedClass(Test.class)
+                .setProperty("hibernate.connection.driver_class", "org.sqlite.JDBC")
+                .setProperty("hibernate.connection.url", "jdbc:sqlite:test")
+                .setProperty("hibernate.dialect", "org.hibernate.dialect.SQLiteDialect")
+                .setProperty("hibernate.show_sql", "true")
+                .setProperty("hibernate.hdm2ddl.auto", "create-drop");
+            ;
+            configuration.configure();
+            SessionFactory factory = configuration.buildSessionFactory();
+            Session session = factory.openSession();
+            Transaction transaction = session.beginTransaction();
+            Test test = new Test();
+            test.setId(4);
+            test.setTitle("test title");
+            session.persist(test);
+            transaction.commit();
+            session.close();
         });
         MenuItem queryItem = new MenuItem("Query");
         toolMenu.getItems().addAll(testItem, queryItem);
