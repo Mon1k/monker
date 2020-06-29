@@ -15,8 +15,12 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 import sample.subproject.hibernate.models.Test;
+import sample.subproject.hibernate.models.TestEntity;
 import sample.window.Popup;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import java.io.File;
 
 public class DbViewer
@@ -43,25 +47,18 @@ public class DbViewer
         Menu toolMenu = new Menu("Tool");
         MenuItem testItem = new MenuItem("test query");
         testItem.setOnAction(actionEvent -> {
-            Configuration configuration = new Configuration();
-            configuration
-                .addAnnotatedClass(Test.class)
-                .setProperty("hibernate.connection.driver_class", "org.sqlite.JDBC")
-                .setProperty("hibernate.connection.url", "jdbc:sqlite:test")
-                .setProperty("hibernate.dialect", "org.hibernate.dialect.SQLiteDialect")
-                .setProperty("hibernate.show_sql", "true")
-                .setProperty("hibernate.hdm2ddl.auto", "create-drop");
-            ;
-            configuration.configure();
-            SessionFactory factory = configuration.buildSessionFactory();
-            Session session = factory.openSession();
-            Transaction transaction = session.beginTransaction();
-            Test test = new Test();
-            test.setId(4);
-            test.setTitle("test title");
-            session.persist(test);
-            transaction.commit();
-            session.close();
+            EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("NewPersistenceUnit");
+            EntityManager entityManager = entityManagerFactory.createEntityManager();
+            entityManager.getTransaction().begin();
+
+            TestEntity testEntity = new TestEntity();
+            testEntity.setId(4);
+            testEntity.setTitle("test 4");
+            entityManager.persist(testEntity);
+            entityManager.getTransaction().commit();
+            entityManager.close();
+            entityManagerFactory.close();
+
         });
         MenuItem queryItem = new MenuItem("Query");
         toolMenu.getItems().addAll(testItem, queryItem);
