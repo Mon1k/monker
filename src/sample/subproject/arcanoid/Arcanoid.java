@@ -268,7 +268,7 @@ public class Arcanoid
 
             if (CollisionDetection.BoxCircle(plank.rectangle, ball.getCircle())) {
                 ball.dy = -ball.dy; // @todo
-                ball.dy += Math.random();
+                ball.dy += Math.random() * 2 - 1;
             }
 
             if (ball.y + ball.radius + ball.dy > stage.getScene().getHeight() - plank.height) {
@@ -289,7 +289,7 @@ public class Arcanoid
                     if (CollisionDetection.CircleCircle(ballOther.getCircle(), ball.getCircle())) {
                         if ((ballOther.dy > 0 && ball.dy < 0) || (ballOther.dy < 0 && ball.dy > 0)) {
                             ballOther.dy = -ballOther.dy; // @todo
-                            ballOther.dy += Math.random();
+                            ballOther.dy += Math.random() * 2 - 1;
                         }
                         ball.dy = -ball.dy;
                         break;
@@ -303,17 +303,17 @@ public class Arcanoid
                 if (ball.circle.isVisible() && block.rectangle.isVisible() &&
                     CollisionDetection.BoxCircle(block.rectangle, ball.getCircle())) {
                     ball.dy = -ball.dy; // @todo
-                    ball.dy += Math.random();
+                    ball.dy += Math.random() * 2 - 1;
                     count++;
 
-                    if (Math.random() * 100 < (20 - balls.size()) * lives) {
+                    if (Math.random() * 100 < (10 - balls.size()) * lives) {
                         Platform.runLater(() -> {
                             Ball newBall = new Ball(root);
                             newBall.radius = Math.random() * 10 + 10;
                             newBall.x = ball.x + newBall.radius + ball.radius;
                             newBall.y = ball.y + newBall.radius;
-                            newBall.dx = Math.random() * 6 - 3;
-                            newBall.dy = Math.random() * 2 + 2;
+                            newBall.dx = Math.random() * 3 - 3;
+                            newBall.dy = Math.random() * 1 + 2;
                             newBall.randomColor();
                             balls.add(newBall);
                         });
