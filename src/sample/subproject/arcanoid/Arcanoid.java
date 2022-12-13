@@ -164,9 +164,9 @@ public class Arcanoid
         Platform.runLater(() -> {
             Ball newBall = new Ball(root);
             newBall.x = plank.x + plank.width / 2;
-            newBall.y = plank.y - newBall.radius;
+            newBall.y = plank.y - newBall.radius * 1.2;
             newBall.dx = Math.random() * 6 - 3;
-            newBall.dy = Math.random() * 4 - 4;
+            newBall.dy = Math.random() * 4 - 8;
             newBall.randomColor();
             balls.add(newBall);
         });

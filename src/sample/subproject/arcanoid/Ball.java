@@ -48,7 +48,7 @@ public class Ball implements Runnable
             return circle;
         }
 
-        return new Circle(x + dx, y + dy, radius);
+        return new Circle(x + dx, y + dy, radius + radius / 4);
     }
 
     public void render()
